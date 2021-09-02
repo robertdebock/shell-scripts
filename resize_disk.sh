@@ -5,7 +5,7 @@ find_disks() {
   disks=$(mount | grep '^/dev/mapper' | awk '{ print $3 }')
   lines=$(echo ${disks} | wc -l)
   characters=$(echo ${disks} | wc -c)
-  if [ "$lines" -gt 1 -a "$characters" -gt 1 ] ; then
+  if [ "$lines" -gt 0 -a "$characters" -gt 1 ] ; then
     echo "What disk do you want to exend?"
     echo
     echo "${disks}"
