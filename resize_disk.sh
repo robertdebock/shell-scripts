@@ -16,9 +16,11 @@ find_disks() {
   fi
 }
 
-find_volume_group() {
+find_volume_information() {
   # A function to find a VG based on the mountpoint.
-  :
+  mapper_path=$(findmnt --mountpoint $(disk_to_extend) --noheadings | awk '{ print $2}')
+  vg=$(lvs ${mapper_path} -o vg_name --noheadings)
+  lv=$(lvs ${mapper_path} -o lv_name --noheadings)
 }
 
 # scan_scsi
@@ -34,3 +36,4 @@ find_volume_group() {
 #
 
 find_disks && read disk_to_extend
+find_volume_information
