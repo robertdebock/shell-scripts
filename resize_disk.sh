@@ -26,7 +26,7 @@ find_volume_information() {
 check_vg_space() {
   # Function to return free space on a vg
   free_extends=$(vgs ${vg} -o vg_free --noheading)
-  if [ "${free_extends}" -gt 0 ]
+  if [ "${free_extends}" -gt 0 ] ; then
     echo "YES, we can extend."
     return
   else
