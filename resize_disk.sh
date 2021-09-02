@@ -37,10 +37,12 @@ check_vg_space() {
 
 extend_logical_volume() {
   # A function to extend a volume.
+  :
 }
 
 resize_filesystem() {
   # A function to resize a given filesystem.
+  :
 }
 
 find_disks && read disk_to_extend
