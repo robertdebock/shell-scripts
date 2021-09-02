@@ -23,9 +23,19 @@ find_volume_information() {
   lv=$(lvs ${mapper_path} -o lv_name --noheadings)
 }
 
+check_vg_space() {
+  # Function to return free space on a vg
+  free_extends=$(vgs ${vg} -o vg_free --noheading)
+  if [ "${free_extends}" -gt 0 ]
+    echo "YES, we can extend."
+    return
+  else
+    echo "NO, This VG has no free space."
+    return 1
+  fi
+}
 # scan_scsi
 #
-# check_vg_space
 # space: resize_lv
 # no_space: "Please resize the disk."
 #
@@ -37,3 +47,8 @@ find_volume_information() {
 
 find_disks && read disk_to_extend
 find_volume_information
+check_vg_space
+
+# Check if `${vg}` has free extends.
+# if free extends: add to lv + resize2fs
+# if ! free extends: Report to add or extend a disk on hypervisor. (report SCSI_ID)
