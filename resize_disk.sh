@@ -26,7 +26,7 @@ find_volume_information() {
 check_vg_space() {
   # Function to return free space on a vg
   free_extends=$(vgs ${vg} -o vg_free --noheading)
-  if [ "${free_extends}" -gt 0 ] ; then
+  if [ ${free_extends} -gt 0 ] ; then
     echo "YES, we can extend."
     return
   else
@@ -34,21 +34,19 @@ check_vg_space() {
     return 1
   fi
 }
-# scan_scsi
-#
-# space: resize_lv
-# no_space: "Please resize the disk."
-#
-# resize_lv() {
-# find_free_space_on_vg
-# echo "How much space do you want to extend the disk with? (between x and y)"
-# lvextend ...
-#
+
+extend_logical_volume() {
+  # A function to extend a volume.
+}
+
+resize_filesystem() {
+  # A function to resize a given filesystem.
+}
 
 find_disks && read disk_to_extend
 find_volume_information
-check_vg_space
+check_vg_space && extend_logical_volume && resize_filesystem
 
-# Check if `${vg}` has free extends.
-# if free extends: add to lv + resize2fs
-# if ! free extends: Report to add or extend a disk on hypervisor. (report SCSI_ID)
+# TODO:
+# 1. Don't resize to 100%, rather ask the user.
+# 2. Write report if no free extends.
