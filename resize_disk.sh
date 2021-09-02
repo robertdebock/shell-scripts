@@ -4,7 +4,7 @@ find_disks() {
   # A function to find disks that are on LVM.
   disks=$(mount | grep '^/dev/mapper' | awk '{ print $3 }')
   length=$(echo ${disks} | wc -l)
-  if [ $length -gt 0 -a -z $length ] ; then
+  if [ "$length" -gt 0 -a -z "$length" ] ; then
     echo "What disk do you want to exend?"
     echo
     echo "${disks}"
