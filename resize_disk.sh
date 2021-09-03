@@ -62,9 +62,9 @@ find_volume_information() {
 
 check_vg_space() {
   # Function to return free space on a vg
-  free_extends=$((1*$(vgs ${vg} -o vg_extent_count --noheading)))
-  if [ ${free_extends} -lt 1 ] ; then
-    echo "This VG has ${free_extends} free extends and can't be extended."
+  available_megabytes=$(( 1 * $(vgs -o vg_free --noheading --units m | sed 's/.$//;s/\...$//') ))
+  if [ ${available_megabytes} -lt 1 ] ; then
+    echo "This VG has ${available_megabytes}MB free and can't be extended."
     echo
     echo "Please add a disk, and use these commands to add the disk to the volumegroup."
     echo "# Find the disk using \`dmesg\`, for example \"/dev/sdb\"."
@@ -72,9 +72,7 @@ check_vg_space() {
     echo
     exit 1
   fi
-  available_extends=$(vgs ${vg} -o vg_free_count --noheading)
-  pe_size=$(vgs ${vg} -o vg_extent_size --noheading --units m | sed 's/.$//;s/\...$//')
-  available_gigabytes=$(( (${available_extends} * ${pe_size}) / 1024 ))
+  available_gigabytes=$(( "${available_megabytes}" / 1024 ))
 }
 
 ask_extend() {
@@ -117,7 +115,7 @@ ask_extend() {
     ;;
   esac
   if [ "${available_gigabytes}" -lt "${extend_size_gigabytes}" ] ; then
-    echo "You are requesting more space (${extend_size_gigabytes}GB) than there is avaialble (${available_gigabytes}GB)."
+    echo "You are requesting more space (${extend_size_gigabytes}GB) than there is available (${available_gigabytes}GB)."
     exit 1
   fi
 }
