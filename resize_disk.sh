@@ -66,12 +66,17 @@ check_vg_space() {
   if [ ${available_megabytes} -lt 1 ] ; then
     echo "This VG has ${available_megabytes}MB free and can't be extended."
     echo
-    echo "Please extend the disk in the hypervisor and run this script again."
-    echo "The SCSI id of the disk that need to be extended is:"
-    echo
-    physical_device=$(pvdisplay -C -o pv_name -S vgname=${vg} --no-heading | cut -d/ -f2)
-    ls -ld /sys/block/${physical_device}/device/scsi_device/*
-    echo
+    physical_device=$(pvdisplay -C -o pv_name -S vgname=${vg} --no-heading | cut -d/ -f3)
+    if [ $(echo "${physical_device} | wc -c) -gt 4 ] ; then
+      echo "The volume group is on a partitioned disk. You need add an extra disk to the system."
+      echo "Please refer to: https://atlassian.interdiscount.ch/confluence/x/soW5B ."
+    else
+      echo "Please extend the disk in the hypervisor and run this script again."
+      echo "The SCSI id of the disk that need to be extended is:"
+      echo
+      ls -ld /sys/block/${physical_device}/device/scsi_device/*
+      echo
+    fi
     exit 1
   fi
   available_gigabytes=$(( "${available_megabytes}" / 1024 ))
