@@ -62,13 +62,11 @@ find_volume_information() {
 
 check_vg_space() {
   # Function to return free space on a vg
-  available_megabytes=$(( 1 * $(vgs -o vg_free --noheading --units m | sed 's/.$//;s/\...$//') ))
+  available_megabytes=$(( 1 * $(vgs ${vg} -o vg_free --noheading --units m | sed 's/.$//;s/\...$//') ))
   if [ ${available_megabytes} -lt 1 ] ; then
     echo "This VG has ${available_megabytes}MB free and can't be extended."
     echo
-    echo "Please add a disk, and use these commands to add the disk to the volumegroup."
-    echo "# Find the disk using \`dmesg\`, for example \"/dev/sdb\"."
-    echo "vgextend ${vg} /dev/sdb"
+    echo "Please extend the disk in the hypervisor and run this script again."
     echo
     exit 1
   fi
