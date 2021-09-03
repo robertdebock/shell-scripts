@@ -131,7 +131,7 @@ extend_logical_volume() {
 discover_filesystem_type() {
   # A function to figure out what filesystem is being used.
   output=$(file -Ls /dev/"${vg}"/"${lv}")
-  for filesystem in ext4 XFS ; do
+  for filesystem in ext3 ext4 XFS ; do
     echo "${output}" | grep "${filesystem}" > /dev/null
     if [ $? = 0 ] ; then
       filesystem_type="${filesystem}"
@@ -143,7 +143,7 @@ resize_filesystem() {
   # A function to resize a given filesystem.
   echo "Resizing filesystem ${disk_to_extend}."
   case "${filesystem_type}" in
-    ext4)
+    ext3|ext4)
       resize2fs /dev/"${vg}"/"${lv}" > /dev/null 2>&1
     ;;
     XFS)
