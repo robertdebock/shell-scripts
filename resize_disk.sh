@@ -83,53 +83,60 @@ check_vg_space() {
 
 ask_extend() {
   # A function to ask the user how much space to extend a volume with.
-  echo "How much space would you like to add? There is ${available_gigabytes}GB available."
+  echo "How much space would you like to add? There is ${available_gigabytes}GB/${available_megabytes}MB available."
   echo ""
   echo "Use these quantifiers to express the size."
   echo "M = Megabyte"
   echo "G = Gigabyte"
   echo "T = Terrabyte"
+  echo "ALL = 100% of the available space."
   echo ""
   echo "For example \"512M\" is a valid answer."
   echo ""
   echo -n "> "
   read extend_size
-  digit=$(echo "${extend_size}" | sed 's/.$//')
-  if ! [ -n "${digit}" -a "${digit}" -eq "${digit}" -a "${digit}" -gt 0 ] 2> /dev/null ; then
-    echo "Digit ${digit} is not valid."
-    echo
-    echo "Please us a digit like \"1\" or \"512\"."
-    exit 1
-  fi
-  digit=$(( "${digit}" * 1 ))
-  quantifier=$(echo "${extend_size: -1}")
-  case "${quantifier}" in
-    M)
-      extend_size_gigabytes="$(( ${digit} / 1024 ))"
-    ;;
-    G)
-      extend_size_gigabytes="${digit}"
-    ;;
-    T)
-      extend_size_gigabytes="$(( ${digit} * 1024 ))"
-    ;;
-    *)
-      echo "Quantifier ${quantifier} is not valid."
+  if [ "${extend_size}" != "ALL" ] ; then
+    digit=$(echo "${extend_size}" | sed 's/.$//')
+    if ! [ -n "${digit}" -a "${digit}" -eq "${digit}" -a "${digit}" -gt 0 ] 2> /dev/null ; then
+      echo "Digit ${digit} is not valid."
       echo
-      echo "Please use a quantifier as \"M\",\"G\" or \"T\"."
+      echo "Please us a digit like \"1\" or \"512\"."
       exit 1
-    ;;
-  esac
-  if [ "${available_gigabytes}" -lt "${extend_size_gigabytes}" ] ; then
-    echo "You are requesting more space (${extend_size_gigabytes}GB) than there is available (${available_gigabytes}GB)."
-    exit 1
+    fi
+    digit=$(( "${digit}" * 1 ))
+    quantifier=$(echo "${extend_size: -1}")
+    case "${quantifier}" in
+      M)
+        extend_size_gigabytes="$(( ${digit} / 1024 ))"
+      ;;
+      G)
+        extend_size_gigabytes="${digit}"
+      ;;
+      T)
+        extend_size_gigabytes="$(( ${digit} * 1024 ))"
+      ;;
+      *)
+        echo "Quantifier ${quantifier} is not valid."
+        echo
+        echo "Please use a quantifier as \"M\",\"G\" or \"T\"."
+        exit 1
+      ;;
+    esac
+    if [ "${available_gigabytes}" -lt "${extend_size_gigabytes}" ] ; then
+      echo "You are requesting more space (${extend_size_gigabytes}GB) than there is available (${available_gigabytes}GB)."
+      exit 1
+    fi
   fi
 }
 
 extend_logical_volume() {
   # A function to extend a volume.
   echo "Resizing logical volume: /dev/${vg}/${lv}"
-  lvextend -L +${digit}${quantifier} /dev/"${vg}"/"${lv}" > /dev/null
+  if [ "${extend_size}" = "ALL" ] ; then
+    lvextend -l +100%FREE /dev/"${vg}"/"${lv}" > /dev/null
+  else
+    lvextend -L +${digit}${quantifier} /dev/"${vg}"/"${lv}" > /dev/null
+  fi
 }
 
 discover_filesystem_type() {
