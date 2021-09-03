@@ -10,6 +10,13 @@ check_root() {
   fi
 }
 
+scan_scsi() {
+  # A function to find all scsi hosts and scan them.
+  for host in $(ls /sys/class/scsi_host) ; do
+    echo "- - -" > /sys/class/scsi_host/${host}/scan
+  done
+}
+
 find_disks() {
   # A function to find disks that are on LVM.
   # INPUT: nothing.
@@ -65,11 +72,14 @@ check_vg_space() {
     echo
     exit 1
   fi
+  available_extends=$(vgs ${vg} -o vg_free_count --noheading)
+  pe_size=$(vgs ${vg} -o vg_extent_size --noheading --units m | sed 's/.$//;s/\...$//')
+  available_gigabytes=$(( (${available_extends} * ${pe_size}) / 1024 ))
 }
 
 ask_extend() {
   # A function to ask the user how much space to extend a volume with.
-  echo "How much space would you like to add?"
+  echo "How much space would you like to add? There is ${available_gigabytes}GB available."
   echo ""
   echo "Use these quantifiers to express the size."
   echo "M = Megabyte"
@@ -84,13 +94,20 @@ ask_extend() {
   if ! [ -n "${digit}" -a "${digit}" -eq "${digit}" ] 2> /dev/null ; then
     echo "Digit ${digit} is not valid."
     echo
-    echo "Please us a digit."
+    echo "Please us a digit like \"1\" or \"512\"."
     exit 1
   fi
+  digit=$(( "${digit}" * 1 ))
   quantifier=$(echo "${extend_size: -1}")
   case "${quantifier}" in
-    M|G|T)
-      continue
+    M)
+      extend_size_gigabytes="$(( ${digit} / 1024 ))"
+    ;;
+    G)
+      extend_size_gigabytes="${digit}"
+    ;;
+    T)
+      extend_size_gigabytes="$(( ${digit} * 1024 ))"
     ;;
     *)
       echo "Quantifier ${quantifier} is not valid."
@@ -99,11 +116,16 @@ ask_extend() {
       exit 1
     ;;
   esac
+  if [ "${available_gigabytes}" -lt "${extend_size_gigabytes}" ] ; then
+    echo "You are requesting more space (${extend_size_gigabytes}GB) than there is avaialble (${available_gigabytes}GB)."
+    exit 1
+  fi
 }
 
 extend_logical_volume() {
   # A function to extend a volume.
-  lvextend -L +${extend_size} /dev/"${vg}"/"${lv}"
+  echo "Resizing logical volume: /dev/${vg}/${lv}"
+  lvextend -L +${digit}${quantifier} /dev/"${vg}"/"${lv}" > /dev/null
 }
 
 discover_filesystem_type() {
@@ -119,12 +141,13 @@ discover_filesystem_type() {
 
 resize_filesystem() {
   # A function to resize a given filesystem.
+  echo "Resizing filesystem ${disk_to_extend}."
   case "${filesystem_type}" in
     ext4)
-      resize2fs /dev/"${vg}"/"${lv}"
+      resize2fs /dev/"${vg}"/"${lv}" > /dev/null 2>&1
     ;;
     XFS)
-      xfs_growfs "${disk_to_extend}"
+      xfs_growfs "${disk_to_extend}" > /dev/null
     ;;
     *)
       echo "The filesystem type ${filesystem_type} can't be extended using this script."
@@ -134,11 +157,10 @@ resize_filesystem() {
 }
 
 check_root
+scan_scsi
 find_disks
 ask_disk
 find_volume_information
 check_vg_space
 ask_extend
-extend_logical_volume
-discover_filesystem_type
-resize_filesystem
+extend_logical_volume && discover_filesystem_type && resize_filesystem
