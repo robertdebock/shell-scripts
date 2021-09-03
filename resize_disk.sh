@@ -62,12 +62,13 @@ find_volume_information() {
 
 check_vg_space() {
   # Function to return free space on a vg
+  pvresize $(pvdisplay -C -o pv_name -S vgname=${vg} --no-heading) > /dev/null
   available_megabytes=$(( 1 * $(vgs ${vg} -o vg_free --noheading --units m | sed 's/.$//;s/\...$//') ))
   if [ ${available_megabytes} -lt 1 ] ; then
     echo "This VG has ${available_megabytes}MB free and can't be extended."
     echo
-    physical_device=$(pvdisplay -C -o pv_name -S vgname=${vg} --no-heading | cut -d/ -f3)
-    if [ $(echo "${physical_device} | wc -c) -gt 4 ] ; then
+    physical_device=$(pvdisplay -C -o pv_name -S vgname=${vg} --no-heading | cut -d/ -f3 | sed 's/ //g')
+    if [ $(echo "${physical_device}" | wc -c) -gt 4 ] ; then
       echo "The volume group is on a partitioned disk. You need add an extra disk to the system."
       echo "Please refer to: https://atlassian.interdiscount.ch/confluence/x/soW5B ."
     else
