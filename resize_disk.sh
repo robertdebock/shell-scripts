@@ -67,6 +67,10 @@ check_vg_space() {
     echo "This VG has ${available_megabytes}MB free and can't be extended."
     echo
     echo "Please extend the disk in the hypervisor and run this script again."
+    echo "The SCSI id of the disk that need to be extended is:"
+    echo
+    physical_device=$(pvdisplay -C -o pv_name -S vgname=${vg} --no-heading | cut -d/ -f2)
+    ls -ld /sys/block/${physical_device}/device/scsi_device/*
     echo
     exit 1
   fi
