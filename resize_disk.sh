@@ -12,9 +12,7 @@ check_root() {
 
 scan_scsi() {
   # A function to find all scsi hosts and scan them.
-  for host in $(ls /sys/class/scsi_host) ; do
-    echo "- - -" > /sys/class/scsi_host/${host}/scan
-  done
+  /usr/bin/rescan_scsi_bus.sh -s
 }
 
 find_disks() {
