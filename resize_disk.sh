@@ -95,7 +95,7 @@ ask_extend() {
   echo -n "> "
   read extend_size
   digit=$(echo "${extend_size}" | sed 's/.$//')
-  if ! [ -n "${digit}" -a "${digit}" -eq "${digit}" ] 2> /dev/null ; then
+  if ! [ -n "${digit}" -a "${digit}" -eq "${digit}" -a "${digit}" -gt 0 ] 2> /dev/null ; then
     echo "Digit ${digit} is not valid."
     echo
     echo "Please us a digit like \"1\" or \"512\"."
