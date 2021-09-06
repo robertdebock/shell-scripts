@@ -4,7 +4,7 @@ check_root() {
   # A function to check if the program is running as root.
   # INPUT: nothing.
   # OUTPUT: exit if not root.
-  if [ $(id -u) -ne 0 ] ; then
+  if [ "$(id -u)" -ne 0 ] ; then
      echo "This script must be run as root."
      exit 1
   fi
@@ -20,7 +20,7 @@ find_disks() {
   # INPUT: nothing.
   # OUTPUT: variable: disks
   disks="$(mount | grep '^/dev/mapper' | awk '{ print $3 }')"
-  lines="$(echo \"${disks}\" | wc -l)"
+  lines="$(echo "${disks}" | wc -l)"
   characters="${#disks}"
   if [ "$lines" -lt 1 ] && [ "$characters" -lt 2 ] ; then
     echo "No LVM disks found that can be extended."
