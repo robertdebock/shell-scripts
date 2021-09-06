@@ -4,7 +4,7 @@ check_root() {
   # A function to check if the program is running as root.
   # INPUT: nothing.
   # OUTPUT: exit if not root.
-  if [ $EUID -ne 0 ]; then
+  if [ `id -u` -ne 0 ] ; then
      echo "This script must be run as root."
      exit 1
   fi
@@ -38,9 +38,9 @@ ask_disk() {
   echo
   echo "${disks}"
   echo
-  echo -n "> "
+  printf "> "
   read -r disk_to_extend
-  if [ $(echo "${disks}" | grep "${disk_to_extend}" > /dev/null) -ne 0 ] ; then
+  if [ "$(echo \"${disks}\" | grep \"${disk_to_extend}\" > /dev/null)" -ne 0 ] ; then
     echo "The disk ${disk_to_extend} is not in:"
     echo
     echo "${disks}"
@@ -92,18 +92,18 @@ ask_extend() {
   echo ""
   echo "For example \"512M\" is a valid answer."
   echo ""
-  echo -n "> "
+  printf "> "
   read -r extend_size
   if [ "${extend_size}" != "ALL" ] ; then
     digit=$(echo "${extend_size}" | sed 's/.$//')
-    if ! [ -n "${digit}" -a "${digit}" -eq "${digit}" ] && ! [ "${digit}" -gt 0 ] 2> /dev/null ; then
+    if ! [ -n "${digit}" ] && ! [ "${digit}" -eq "${digit}" ] && ! [ "${digit}" -gt 0 ] 2> /dev/null ; then
       echo "Digit ${digit} is not valid."
       echo
       echo "Please us a digit like \"1\" or \"512\"."
       exit 1
     fi
     digit=$(( digit * 1 ))
-    quantifier="$(echo \"${extend_size: -1}\")"
+    quantifier="$(echo \"${extend_size}\" | tail -c 2)"
     case "${quantifier}" in
       M)
         extend_size_gigabytes="$(( digit / 1024 ))"
@@ -142,7 +142,7 @@ discover_filesystem_type() {
   # A function to figure out what filesystem is being used.
   output=$(file -Ls /dev/"${vg}"/"${lv}")
   for filesystem in ext3 ext4 XFS ; do
-    if [ $(echo "${output}" | grep "${filesystem}" > /dev/null) = 0 ] ; then
+    if [ "$(echo \"${output}\" | grep \"${filesystem}\" > /dev/null)" = 0 ] ; then
       filesystem_type="${filesystem}"
     fi
   done
