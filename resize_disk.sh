@@ -40,7 +40,7 @@ ask_disk() {
   echo
   echo -n "> "
   read -r disk_to_extend
-  if [ (echo "${disks}" | grep "${disk_to_extend}" > /dev/null) -ne 0 ] ; then
+  if [ $(echo "${disks}" | grep "${disk_to_extend}" > /dev/null) -ne 0 ] ; then
     echo "The disk ${disk_to_extend} is not in:"
     echo
     echo "${disks}"
