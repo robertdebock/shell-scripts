@@ -12,7 +12,7 @@ check_root() {
 
 scan_scsi() {
   # A function to find all scsi hosts and scan them.
-  /usr/bin/rescan_scsi_bus.sh -s
+  /usr/bin/rescan-scsi-bus.sh -s > /dev/null
 }
 
 find_disks() {
@@ -40,7 +40,7 @@ ask_disk() {
   echo
   printf "> "
   read -r disk_to_extend
-  if [ "$(echo "${disks}" | grep "${disk_to_extend}" > /dev/null)" -ne 0 ] ; then
+  if ! (echo "${disks}" | grep "${disk_to_extend}" > /dev/null) ; then
     echo "The disk ${disk_to_extend} is not in:"
     echo
     echo "${disks}"
@@ -59,24 +59,26 @@ find_volume_information() {
 
 check_vg_space() {
   # Function to return free space on a vg
-  pvresize "$(pvdisplay -C -o pv_name -S vgname="${vg}" --no-heading) > /dev/null"
   available_megabytes="$(( 1 * $(vgs "${vg}" -o vg_free --noheading --units m | sed 's/.$//;s/\...$//') ))"
   if [ "${available_megabytes}" -lt 1 ] ; then
     echo "This VG has ${available_megabytes}MB free and can't be extended."
     echo
     physical_device="$(pvdisplay -C -o pv_name -S vgname="${vg}" --no-heading | cut -d/ -f3 | sed 's/ //g')"
-    if [ "${#physical_device}" -gt 4 ] ; then
+    if [ "${#physical_device}" -ge 4 ] ; then
       echo "The volume group is on a partitioned disk. You need add an extra disk to the system."
       echo "Please refer to: https://atlassian.interdiscount.ch/confluence/x/soW5B ."
+      echo
+      exit 1
     else
       echo "Please extend the disk in the hypervisor and run this script again."
       echo "The SCSI id of the disk that need to be extended is:"
       echo
-      ls -ld "/sys/block/${physical_device}/device/scsi_device/*"
+      ls "/sys/block/${physical_device}/device/scsi_device/"
       echo
+      exit 1
     fi
-    exit 1
   fi
+  pvresize "$(pvdisplay -C -o pv_name -S vgname="${vg}" --no-heading | awk '{ print $1 }')" > /dev/null
   available_gigabytes=$(( available_megabytes / 1024 ))
 }
 
@@ -142,7 +144,7 @@ discover_filesystem_type() {
   # A function to figure out what filesystem is being used.
   output=$(file -Ls /dev/"${vg}"/"${lv}")
   for filesystem in ext3 ext4 XFS ; do
-    if [ "$(echo "${output}" | grep "${filesystem}" > /dev/null)" = 0 ] ; then
+    if (echo "${output}" | grep "${filesystem}" > /dev/null) ; then
       filesystem_type="${filesystem}"
     fi
   done
