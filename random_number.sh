@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # A script to return a random number, based on a least and most value.
 
