@@ -38,6 +38,6 @@ if [ "${least}" -ge "${most}" ] ; then
   exit 1
 fi
 
-delta=$(($most - $least + 1))
+delta=$((most - least + 1))
 
-echo $(($least + $RANDOM % $delta))
+echo $((least + RANDOM % delta))
