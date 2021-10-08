@@ -1,4 +1,4 @@
-#!/bin/sh 
+#!/bin/sh
 
 check_root() {
   # A function to check if the program is running as root.
@@ -32,7 +32,7 @@ ask_disk() {
   # A function to ask the user for a disk.
   # INPUT: nothing
   # OUTPUT: variable: disk_to_extend
-  if [ -z $1 ] ; then
+  if [ -z "$1" ] ; then
     echo "What disk do you want to exend?"
     echo
     echo "Choose from these disks found:"
@@ -75,7 +75,7 @@ get_disk_status() {
 #      echo "Please extend the disk /dev/${physical_device} in the hypervisor and run this script again."
 #      echo "The SCSI id of the disk that need to be extended is:"
 #      echo
-      scsi_ports+="$(ls /sys/block/${physical_device}/device/scsi_device/) "
+      scsi_ports+="$(ls /sys/block/\"${physical_device}\"/device/scsi_device/) "
 #      echo
 #      extendable_disks="${extendable_disks} ${physical_device}"
       extendable_disks+="$physical_device "
@@ -96,8 +96,8 @@ get_disk_status() {
 
 check_vg_space() {
   # Function to return free space on a vg
-  pvdisplay -C -o pv_name -S vgname="${vg}" --no-heading | awk '{ print $1 }' | sort | uniq | while read disk ; do
-    pvresize ${disk} > /dev/null
+  pvdisplay -C -o pv_name -S vgname="${vg}" --no-heading | awk '{ print $1 }' | sort | uniq | while read -r disk ; do
+    pvresize "${disk}" > /dev/null
   done
   available_megabytes="$(( 1 * $(vgs "${vg}" -o vg_free --noheading --units m | sed 's/.$//;s/\...$//') ))"
   if [ "${available_megabytes}" -lt 1 ] ; then
