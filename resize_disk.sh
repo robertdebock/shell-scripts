@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh 
 
 check_root() {
   # A function to check if the program is running as root.
@@ -32,14 +32,18 @@ ask_disk() {
   # A function to ask the user for a disk.
   # INPUT: nothing
   # OUTPUT: variable: disk_to_extend
-  echo "What disk do you want to exend?"
-  echo
-  echo "Choose from these disks found:"
-  echo
-  echo "${disks}"
-  echo
-  printf "> "
-  read -r disk_to_extend
+  if [ -z $1 ] ; then
+    echo "What disk do you want to exend?"
+    echo
+    echo "Choose from these disks found:"
+    echo
+    echo "${disks}"
+    echo
+    printf "> "
+    read -r disk_to_extend
+  else
+    disk_to_extend="$1"
+  fi
   if ! (echo "${disks}" | grep "${disk_to_extend}" > /dev/null) ; then
     echo "The disk ${disk_to_extend} is not in:"
     echo
@@ -57,28 +61,51 @@ find_volume_information() {
   lv="$(lvs "${mapper_path}" -o lv_name --noheadings | awk '{ print $1}')"
 }
 
+get_disk_status() {
+  physical_devices="$(pvdisplay -C -o pv_name -S vgname="${vg}" --no-heading | cut -d/ -f3 | sed 's/ //g' | xargs)"
+  for physical_device in  $physical_devices ; do
+#  pvdisplay -C -o pv_name -S vgname="${vg}" --no-heading | cut -d/ -f3 | sed 's/ //g' | while read physical_device ; do
+    if [ "${#physical_device}" -ge 4 ] ; then
+#      echo "The volume group is on a partitioned disk /dev/${physical_device}. You need add an extra disk to the system."
+#      echo "Please refer to: https://atlassian.interdiscount.ch/confluence/x/soW5B ."
+#      echo
+#      partitioned_disks="${partitioned_disks} ${physical_device}"
+      partitioned_disks+="$physical_device "
+    else
+#      echo "Please extend the disk /dev/${physical_device} in the hypervisor and run this script again."
+#      echo "The SCSI id of the disk that need to be extended is:"
+#      echo
+      scsi_ports+="$(ls /sys/block/${physical_device}/device/scsi_device/) "
+#      echo
+#      extendable_disks="${extendable_disks} ${physical_device}"
+      extendable_disks+="$physical_device "
+    fi
+  done
+  # The variable extendable_disks is not availbe outside of the loop.
+  if [ "${#extendable_disks}" -ge 1 ] ; then
+    echo "Please extend the disk /dev/${physical_device} in the hypervisor and run this script again."
+    echo "The SCSI id of the disk that need to be extended is:"
+    echo
+    echo "You can find the disks on these IDs: ${scsi_ports}" 
+  else
+    echo "The volume group is on a partitioned disk. You need add an extra disk to the system."
+    echo "Please refer to: https://atlassian.interdiscount.ch/confluence/x/soW5B ."
+    echo
+  fi
+}
+
 check_vg_space() {
   # Function to return free space on a vg
+  pvdisplay -C -o pv_name -S vgname="${vg}" --no-heading | awk '{ print $1 }' | sort | uniq | while read disk ; do
+    pvresize ${disk} > /dev/null
+  done
   available_megabytes="$(( 1 * $(vgs "${vg}" -o vg_free --noheading --units m | sed 's/.$//;s/\...$//') ))"
   if [ "${available_megabytes}" -lt 1 ] ; then
     echo "This VG has ${available_megabytes}MB free and can't be extended."
     echo
-    physical_device="$(pvdisplay -C -o pv_name -S vgname="${vg}" --no-heading | cut -d/ -f3 | sed 's/ //g')"
-    if [ "${#physical_device}" -ge 4 ] ; then
-      echo "The volume group is on a partitioned disk. You need add an extra disk to the system."
-      echo "Please refer to: https://atlassian.interdiscount.ch/confluence/x/soW5B ."
-      echo
-      exit 1
-    else
-      echo "Please extend the disk in the hypervisor and run this script again."
-      echo "The SCSI id of the disk that need to be extended is:"
-      echo
-      ls "/sys/block/${physical_device}/device/scsi_device/"
-      echo
-      exit 1
-    fi
+    get_disk_status
+    exit 1
   fi
-  pvresize "$(pvdisplay -C -o pv_name -S vgname="${vg}" --no-heading | awk '{ print $1 }')" > /dev/null
   available_gigabytes=$(( available_megabytes / 1024 ))
 }
 
@@ -170,7 +197,7 @@ resize_filesystem() {
 check_root
 scan_scsi
 find_disks
-ask_disk
+ask_disk "$1"
 find_volume_information
 check_vg_space
 ask_extend
