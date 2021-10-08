@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 check_root() {
   # A function to check if the program is running as root.
