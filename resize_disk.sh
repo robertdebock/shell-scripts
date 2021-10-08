@@ -75,7 +75,7 @@ get_disk_status() {
 #      echo "Please extend the disk /dev/${physical_device} in the hypervisor and run this script again."
 #      echo "The SCSI id of the disk that need to be extended is:"
 #      echo
-      scsi_ports+="$(ls /sys/block/\"${physical_device}\"/device/scsi_device/) "
+      scsi_ports+="$(ls /sys/block/"${physical_device}"/device/scsi_device/) "
 #      echo
 #      extendable_disks="${extendable_disks} ${physical_device}"
       extendable_disks+="$physical_device "
@@ -124,7 +124,7 @@ ask_extend() {
   printf "> "
   read -r extend_size
   if [ "${extend_size}" != "ALL" ] ; then
-    digit=$(echo "${extend_size}" | sed 's/.$//')
+    digit="${extend_size::$((${#extend_size}-1))}"
     if [ -z "${digit}" ] && ! [ "${digit}" -eq "${digit}" ] && ! [ "${digit}" -gt 0 ] 2> /dev/null ; then
       echo "Digit ${digit} is not valid."
       echo
