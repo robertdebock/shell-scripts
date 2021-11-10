@@ -2,7 +2,7 @@
 
 # Stolen from https://github.com/hashicorp/vault/issues/1815#issuecomment-300861855
 
-if [ ! which jq > /dev/null 2>&1 ] ; then
+if ! which jq > /dev/null 2>&1 ; then
   echo "Please install jq."
   exit 1
 fi
