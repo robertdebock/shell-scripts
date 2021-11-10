@@ -34,7 +34,7 @@ revoke_apps() {
     echo "Cannot find accessors.list; run dump first"
     exit 1
   fi
-  while read ACCESSOR; do
+  while read -r ACCESSOR; do
     revoke_app "$ACCESSOR" "$1"
   done < accessors.list
 }
@@ -45,7 +45,7 @@ info() {
     echo "Cannot find accessors.list; run dump first"
     exit 1
   fi
-  while read ACCESSOR; do
+  while read -r ACCESSOR; do
     vault token-lookup -format=json -accessor "$ACCESSOR"
   done < accessors.list
 }
