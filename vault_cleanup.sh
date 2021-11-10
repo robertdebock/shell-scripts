@@ -68,7 +68,7 @@ case ${1:-"help"} in
     fi
     revoke_apps "$2"
   ;;
-  *|help)
+  *)
     cat <<EOF
 Usage:
 
