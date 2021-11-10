@@ -22,7 +22,8 @@ dump() {
 revoke_app() {
   local accessor="$1"
   local revoke_app="$2"
-  local appid=$(vault token lookup -format=json -accessor "$accessor" | jq -r '.data.meta."app-id"')
+  appid=$(vault token lookup -format=json -accessor "$accessor" | jq -r '.data.meta."app-id"')
+  local appid
   if [ "$appid" = "$revoke_app" ]; then
     echo "Revoke: $accessor"
     vault token-revoke -accessor "$accessor" > /dev/null
