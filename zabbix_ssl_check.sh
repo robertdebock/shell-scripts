@@ -15,13 +15,24 @@ if [ -z "${1}" ] ; then
   exit 1
 fi
 
+case "${OSTYPE}" in
+  linux-gnu)
+    date_command="date -d"
+    date_pattern=""
+  ;;
+  darwin21.0)
+    date_command="date -j -f"
+    date_pattern="%b %d %T %Y %Z"
+  ;;
+esac
+
 end_date=$(echo | openssl s_client -servername "${servername}" -host "${hostname}" -port "${port}" -showcerts -prexit 2> /dev/null |
   sed -n '/BEGIN CERTIFICATE/,/END CERT/p' |
   openssl x509 -text 2>/dev/null |
   sed -n 's/ *Not After : *//p')
 
 if [ -n "$end_date" ] ; then
-  end_date_seconds=$(date -j -f "%b %d %T %Y %Z" "${end_date}" "+%s")
+  end_date_seconds=$(${date_command} ${date_pattern} "${end_date}" "+%s")
   now_seconds=$(date '+%s')
   echo "($end_date_seconds-$now_seconds)/24/3600" | bc
 else
