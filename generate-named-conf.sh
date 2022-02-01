@@ -21,9 +21,8 @@ options {
   directory "/var/cache/bind";
 
   recursion yes;
-  # TODO: change 'any' to 'goodclients' when done.
-  allow-query { any; };
-  allow-query-cache { any; };
+  allow-query { goodclients; };
+  allow-query-cache { goodclients; };
 
   forward only;
   forwarders {
@@ -39,17 +38,25 @@ options {
 
 EOF
 
+# if [ -f forwarders.txt ] ; then
+#   grep -v '^#' forwarders.txt | while read -r zone dnses ; do
+#     echo "zone \"${zone}\" {"
+#     echo "  type forward;"
+#     echo "  forward only;"
+#     printf "  forwarders { "
+#     for dns in ${dnses} ; do
+#       printf "%s; " "${dns}"
+#     done
+#     echo "};"
+#     echo "};"
+#     echo ""
+#   done
+# fi
+
 if [ -f forwarders.txt ] ; then
   grep -v '^#' forwarders.txt | while read -r zone dnses ; do
-    echo "zone \"${zone}\" {"
-    echo "  type forward;"
-    echo "  forward only;"
-    printf "  forwarders { "
-    for dns in ${dnses} ; do
-      printf "%s; " "${dns}"
-    done
-    echo "};"
-    echo "};"
+    printf "Add-DnsServerConditionalForwarderZone -Name %s -MasterServers " "${zone}"
+    printf "%s" "${dnses}" | sed 's/ /,/g'
     echo ""
   done
 fi

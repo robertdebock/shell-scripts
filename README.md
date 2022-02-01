@@ -6,3 +6,4 @@
 - [random_number.sh](https://raw.githubusercontent.com/robertdebock/shell-scripts/main/random_number.sh) - Print a random number.
 - [vault_cleanup.sh](https://raw.githubusercontent.com/robertdebock/shell-scripts/main/vault_cleanup.sh) - Cleanup HashiCorp Vault leases.
 - [generate-named-conf.sh](https://raw.githubusercontent.com/robertdebock/shell-scripts/main/generate-named-conf.sh) - Generate Bind configuration.
+- [zabbix_ssl_check.sh](https://raw.githubusercontent.com/robertdebock/shell-scripts/main/zabbix_ssl_check.sh) - Show the number of days a certificate is valid for.
