@@ -16,13 +16,17 @@ if [ -z "${1}" ] ; then
 fi
 
 case "${OSTYPE}" in
-  linux-gnu)
+  "linux-gnu")
     date_command="date -d"
-    date_pattern=""
+    date_pattern=
   ;;
-  darwin21.0)
+  "darwin21")
     date_command="date -j -f"
     date_pattern="%b %d %T %Y %Z"
+  ;;
+  *)
+    echo "The OS ${OSTYPE} is not supported."
+    exit 1
   ;;
 esac
 
@@ -31,8 +35,8 @@ end_date=$(echo | openssl s_client -servername "${servername}" -host "${hostname
   openssl x509 -text 2>/dev/null |
   sed -n 's/ *Not After : *//p')
 
-if [ -n "$end_date" ] ; then
-  end_date_seconds=$(${date_command} ${date_pattern} "${end_date}" "+%s")
+if [ -n "${end_date}" ] ; then
+  end_date_seconds=$(${date_command} "${date_pattern}" "${end_date}" "+%s")
   now_seconds=$(date '+%s')
   echo "($end_date_seconds-$now_seconds)/24/3600" | bc
 else
