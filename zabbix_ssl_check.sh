@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/bash
 
 servername=$1
 port=${2:-443}
