@@ -23,10 +23,10 @@ end_date=$(echo | openssl s_client -servername "${servername}" -host "${hostname
 if [ -n "${end_date}" ] ; then
   case "${OSTYPE}" in
     "linux-gnu")
-      end_date_seconds=$(date -d +%s)
+      end_date_seconds=$(date -d "${end_date}" +%s)
     ;;
     "darwin21")
-      end_date_seconds=$(date -j -f '%b %d %T %Y %Z' "$end_date" +%s)
+      end_date_seconds=$(date -j -f '%b %d %T %Y %Z' "${end_date}" +%s)
     ;;
     *)
       echo "The OS ${OSTYPE} is not supported."
