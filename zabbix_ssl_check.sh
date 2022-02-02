@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/sh -x
 
 servername=$1
 port=${2:-443}
@@ -18,11 +18,9 @@ fi
 case "${OSTYPE}" in
   "linux-gnu")
     date_command="date -d"
-    date_pattern=
   ;;
   "darwin21")
-    date_command="date -j -f"
-    date_pattern="%b %d %T %Y %Z"
+    date_command="date -j -f \"%b %d %T %Y %Z\""
   ;;
   *)
     echo "The OS ${OSTYPE} is not supported."
@@ -36,7 +34,7 @@ end_date=$(echo | openssl s_client -servername "${servername}" -host "${hostname
   sed -n 's/ *Not After : *//p')
 
 if [ -n "${end_date}" ] ; then
-  end_date_seconds=$(${date_command} "${date_pattern}" "${end_date}" "+%s")
+  end_date_seconds=$(${date_command} "${end_date}" "+%s")
   now_seconds=$(date '+%s')
   echo "($end_date_seconds-$now_seconds)/24/3600" | bc
 else
