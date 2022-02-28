@@ -32,7 +32,7 @@ report() {
   if [ -n "${end_date}" ] ; then
     end_date_seconds=$(date -d "${end_date}" +%s)
     now_seconds=$(date '+%s')
-    echo "($end_date_seconds-$now_seconds)/24/3600" | bc
+    $(((end_date_seconds-now_seconds)/24/3600))
   else
     echo "An error occurred."
     exit 1
