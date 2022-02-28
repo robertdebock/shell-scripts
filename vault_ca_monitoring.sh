@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/sh
 
 # INPUT: URL (https://vault.example.com/namespace/path/pki)
 
@@ -21,7 +21,7 @@ test_connection() {
 }
 
 call_api() {
-  certificate=$(curl "${1}")
+  certificate=$(curl "${1}" 2> /dev/null)
 }
 
 report() {
