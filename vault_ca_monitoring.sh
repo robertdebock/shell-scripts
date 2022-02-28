@@ -13,8 +13,7 @@ usage() {
 
 test_connection() {
   # Try the connection.
-  curl "${1}" > /dev/null 2>&1
-  if [ $? -ne 0 ] ; then
+  if ! curl "${1}" > /dev/null 2>&1 ; then
     echo "Can't connect."
     exit 2
   fi
